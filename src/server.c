@@ -12,6 +12,8 @@
 LOG_MODULE_REGISTER(server, LOG_LEVEL_DBG);
 #define SERVER_IO_BUFFER_SIZE 1000
 
+#define SERVER_MAX_CLIENT_QUEUE CONFIG_NET_SAMPLE_NUM_HANDLERS
+
 /********************************* TYPEDEFS ***********************************/
 typedef int (*server_bind_t)(server_t *);
 typedef int (*server_process_t)(server_t *);
@@ -21,7 +23,6 @@ typedef struct _server_iface_t {
     server_process_t process;
 } server_iface_t;
 typedef server_iface_t *(*server_iface_create_t)(void);
-
 
 struct _server_t
 {
@@ -72,7 +73,7 @@ static int server_udp_bind(server_t *self)
 static int server_udp_process(server_t *self)
 {
     int ret = 0;
-    int received;
+    int received = 0;
     struct sockaddr client_addr;
     socklen_t client_addr_len;
     char recv_buffer[SERVER_IO_BUFFER_SIZE];
@@ -116,16 +117,88 @@ static server_iface_t *server_udp_create(void)
 
 static int server_tcp_bind(server_t *self)
 {
-    LOG_WRN("Not implemented");
+    int ret = 0;
+    struct sockaddr_in s_addr;
+    socklen_t s_addr_len = 0;
 
-    return -1;
+    if (self->type != SERVER_PROTO_TCP)
+    {
+        LOG_ERR("Invalid server context!");
+        return -1;
+    }
+
+    (void)memset(&s_addr, 0, sizeof(s_addr));
+    s_addr.sin_family = AF_INET;
+    s_addr.sin_port = htons(self->port);
+
+    self->sock = socket(s_addr.sin_family, SOCK_STREAM, 0);
+    if (self->sock < 0) {
+        LOG_ERR("Failed to create TCP socket: %d, %s", errno, strerror(errno));
+        return -errno;
+    }
+
+    s_addr_len = sizeof(s_addr);
+    ret = bind(self->sock, (struct sockaddr *)&s_addr, s_addr_len);
+    if (ret < 0) {
+        LOG_ERR("Failed to bind TCP socket: %d, %s", errno, strerror(errno));
+        return -errno;
+    }
+
+    ret = listen(self->sock, SERVER_MAX_CLIENT_QUEUE);
+    if (ret < 0) {
+        LOG_ERR("Failed to listen on TCP socket: %d, %s", errno, strerror(errno));
+        return -errno;
+    }
+
+    return 0;
+}
+
+static int server_tcp_conn_handler(server_t *self, int conn)
+{
+    int ret = 0;
+    int received = 0;
+    char recv_buffer[SERVER_IO_BUFFER_SIZE];
+
+    for(;;)
+    {
+        received = recv(conn, recv_buffer, SERVER_IO_BUFFER_SIZE, 0);
+        if (received == 0) {
+            /* Connection closed */
+            LOG_INF("TCP: Connection closed");
+            break;
+        } else if (received < 0) {
+            /* Socket error */
+            LOG_ERR("TCP: Connection error %d", errno);
+            ret = errno;
+            break;
+        }
+        send(conn, recv_buffer, received, 0);
+    }
+
+    (void)close(conn);
+    return ret;
 }
 
 static int server_tcp_process(server_t *self)
 {
-    LOG_WRN("Not implemented");
+    int conn = -1;
+    struct sockaddr_in client_addr;
+    socklen_t client_addr_len = 0;
 
-    return -1;
+    LOG_INF("Waiting for TCP connections on port %d...", self->port);
+    client_addr_len = sizeof(client_addr);
+    for (;;) {
+        conn = accept(self->sock, (struct sockaddr *)&client_addr,
+                &client_addr_len);
+        if (conn < 0) {
+            LOG_ERR("TCP: Accept error: %d, %s", errno, strerror(errno));
+            continue;
+        }
+
+        server_tcp_conn_handler(self, conn);
+    }
+
+    return 0;
 }
 
 static server_iface_t *server_tcp_create(void)
