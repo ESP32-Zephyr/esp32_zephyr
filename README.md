@@ -38,21 +38,14 @@ The results should look similar to the output shown below:
 [00:00:15.940,000] <inf> wifi:  Security: WPA2-PSK
 [00:00:15.940,000] <inf> wifi:  RSSI: xx
 [00:00:15.940,000] <inf> server: Creating new server object
-[00:00:15.940,000] <inf> server: Listeing on UDP port 4242...
+[00:00:11.904,000] <inf> server: Waiting for TCP connections on port 4242...
 ```
 
 ## Test
 
 ```console
 $ cd test
-$ go run esp32_client.go  --dest_addr xxx.xxx.xxx.xxx:4242
-```
-
-or
-
-```console
-$ cd test
-$ python3 esp32_client.py --dest_addr xxx.xxx.xxx.xxx:4242
+$ python3 esp32_client.py --dest_addr tcp:xxx.xxx.xxx.xxx:4242
 ```
 
 where `xxx.xxx.xxx.xxx` is the IPv4 address obtained from the DHCP. This address
