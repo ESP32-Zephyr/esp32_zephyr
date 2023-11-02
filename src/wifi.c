@@ -64,11 +64,6 @@ bool wifi_connect(const char *ssid, char *pass) {
     bool net_iface_up = false;
 
     k_sem_init (&wifi.connected, 0, 1);
-    net_mgmt_init_event_callback(&wifi.event_cb, wifi_mgmt_event_handler,
-        NET_EVENT_WIFI_CONNECT_RESULT | NET_EVENT_WIFI_DISCONNECT_RESULT);
-    net_mgmt_add_event_callback(&wifi.event_cb);
-
-    memset(&wifi.params, 0x00, sizeof(struct wifi_connect_req_params));
     wifi.iface = net_if_get_default();
     /* Check if the network interface is up */
     while (retries) {
@@ -83,6 +78,11 @@ bool wifi_connect(const char *ssid, char *pass) {
     if (!net_iface_up)
         return false;
 
+    net_mgmt_init_event_callback(&wifi.event_cb, wifi_mgmt_event_handler,
+        NET_EVENT_WIFI_CONNECT_RESULT | NET_EVENT_WIFI_DISCONNECT_RESULT);
+    net_mgmt_add_event_callback(&wifi.event_cb);
+
+    memset(&wifi.params, 0x00, sizeof(struct wifi_connect_req_params));
     /* Connect to WIFI */
     wifi.params.ssid = ssid;
     wifi.params.psk = pass;
