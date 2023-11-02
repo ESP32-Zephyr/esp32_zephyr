@@ -2,9 +2,11 @@
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/wifi_mgmt.h>
 #include <zephyr/net/net_event.h>
+#include <zephyr/logging/log.h>
 
 #include "wifi.h"
 /******************************** LOCAL DEFINES *******************************/
+LOG_MODULE_REGISTER(wifi, LOG_LEVEL_DBG);
 
 /********************************* TYPEDEFS ***********************************/
 typedef struct _wifi_ctx_t {
@@ -26,9 +28,9 @@ static void wifi_connect_event_handler(struct net_mgmt_event_callback *cb) {
     const struct wifi_status *info = (const struct wifi_status *)cb->info;
 
     if (info->status) {
-        printk("Connection request failed (%d)\n", info->status);
+        LOG_ERR("Connection request failed (%d)", info->status);
     } else {
-        printk("Connected\n");
+        LOG_INF("Connected");
         k_sem_give(&wifi.connected);
     }
 }
@@ -37,9 +39,9 @@ static void wifi_disconnect_event_handler(struct net_mgmt_event_callback *cb) {
     const struct wifi_status *info = (const struct wifi_status *)cb->info;
 
     if (info->status) {
-        printk("Disconnection request (%d)\n", info->status);
+        LOG_ERR("Disconnection request (%d)", info->status);
     } else {
-        printk("Disconnected\n");
+        LOG_INF("Disconnected");
         k_sem_take(&wifi.connected, K_NO_WAIT);
     }
 }
@@ -93,13 +95,13 @@ bool wifi_connect(const char *ssid, char *pass) {
     wifi.params.band = WIFI_FREQ_BAND_2_4_GHZ;
     wifi.params.mfp = WIFI_MFP_OPTIONAL;
 
-    printk("Connecting to: %s\n", wifi.params.ssid);
+    LOG_INF("Connecting to: %s", wifi.params.ssid);
     if (net_mgmt(NET_REQUEST_WIFI_CONNECT, wifi.iface,
         &wifi.params, sizeof(struct wifi_connect_req_params))) {
-        printk("WiFi Connection Request Failed\n");
+        LOG_ERR("WiFi Connection Request Failed");
         return false;
     }
-    printk("Waiting for authorization...\n");
+    LOG_INF("Waiting for authorization...");
     k_sem_take(&wifi.connected, K_FOREVER);
 
     return true;
@@ -108,7 +110,7 @@ bool wifi_connect(const char *ssid, char *pass) {
 void wifi_disconnect(void) {
     if (net_mgmt(NET_REQUEST_WIFI_DISCONNECT, wifi.iface, NULL, 0))
     {
-        printk("WiFi Disconnection Request Failed\n");
+        LOG_ERR("WiFi Disconnection Request Failed");
     }
 }
 
@@ -117,16 +119,16 @@ void wifi_status(void) {
 
     if (net_mgmt(NET_REQUEST_WIFI_IFACE_STATUS, wifi.iface, &status,
         sizeof(struct wifi_iface_status))) {
-        printk("WiFi Status Request Failed\n");
+        LOG_ERR("WiFi Status Request Failed");
     }
 
     if (status.state >= WIFI_STATE_ASSOCIATED) {
-        printk("Wifi network state:\n");
-        printk("\tSSID: %-32s\n", status.ssid);
-        printk("\tBand: %s\n", wifi_band_txt(status.band));
-        printk("\tChannel: %d\n", status.channel);
-        printk("\tSecurity: %s\n", wifi_security_txt(status.security));
-        printk("\tRSSI: %d\n", status.rssi);
+        LOG_INF("Wifi network state:");
+        LOG_INF("\tSSID: %-32s", status.ssid);
+        LOG_INF("\tBand: %s", wifi_band_txt(status.band));
+        LOG_INF("\tChannel: %d", status.channel);
+        LOG_INF("\tSecurity: %s", wifi_security_txt(status.security));
+        LOG_INF("\tRSSI: %d", status.rssi);
     }
 }
 
