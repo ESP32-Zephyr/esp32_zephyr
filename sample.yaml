@@ -1,0 +1,8 @@
+common:
+  harness: net
+  tags:
+    - net
+    - wifi
+sample:
+  description: Connect to Wifi network with ESP32
+  name: ESP32 WiFi
