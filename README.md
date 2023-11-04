@@ -43,14 +43,26 @@ The results should look similar to the output shown below:
 
 ## Test
 
+### Service discovery
+
+```console
+$  avahi-resolve -4 -n esp32.local
+esp32.local xxx.xxx.xxx.xxx
+```
+
+```console
+$ avahi-browse -t -r _esp32._tcp
++ wlp4s0 IPv4 esp32                                         _esp32._tcp          local
+= wlp4s0 IPv4 esp32                                         _esp32._tcp          local
+   hostname = [esp32.local]
+   address = [xxx.xxx.xxx.xxx]
+   port = [4242]
+   txt = []
+```
+
+### Send/Receive test message
+
 ```console
 $ cd test
 $ python3 esp32_client.py --dest_addr tcp:xxx.xxx.xxx.xxx:4242
-```
-
-where `xxx.xxx.xxx.xxx` is the IPv4 address obtained from the DHCP. This address
-is displayed in the log on the line:
-
-```
-<inf> net_dhcpv4: Received: xxx.xxx.xxx.xxx
 ```
