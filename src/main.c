@@ -4,6 +4,7 @@
 #include <zephyr/kernel.h>
 #include <stddef.h>
 
+#include "version.h"
 #include "wifi.h"
 #include "server.h"
 
@@ -29,6 +30,8 @@ int main(void)
 {
     wifi_iface_t *wifi = NULL;
     server_t *server = NULL;
+
+    version_print();
 
     /* Connect to Wifi */
     wifi = wifi_get();
