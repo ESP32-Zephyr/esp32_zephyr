@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/net/dns_sd.h>
 
 #include "server.h"
 
@@ -28,6 +29,8 @@ struct _server_t
 {
     server_proto_t type;
     int port;
+    bool register_service;
+
     int sock;
     server_iface_t *iface;
 };
@@ -39,7 +42,7 @@ struct _server_t
 static int server_udp_bind(server_t *self)
 {
     int ret = 0;
-    struct sockaddr_in s_addr;
+    static struct sockaddr_in s_addr;
     socklen_t s_addr_len = 0;
 
     if (self->type != SERVER_PROTO_UDP)
@@ -51,6 +54,12 @@ static int server_udp_bind(server_t *self)
     (void)memset(&s_addr, 0, sizeof(s_addr));
     s_addr.sin_family = AF_INET;
     s_addr.sin_port = htons(self->port);
+
+    if (self->register_service) {
+        DNS_SD_REGISTER_SERVICE(esp32, CONFIG_NET_HOSTNAME,
+                    "_esp32", "_udp", "local", DNS_SD_EMPTY_TXT,
+                    &s_addr.sin_port);
+    }
 
     self->sock = socket(s_addr.sin_family, SOCK_DGRAM, IPPROTO_UDP);
     if (self->sock < 0) {
@@ -118,8 +127,8 @@ static server_iface_t *server_udp_create(void)
 static int server_tcp_bind(server_t *self)
 {
     int ret = 0;
-    struct sockaddr_in s_addr;
     socklen_t s_addr_len = 0;
+    static struct sockaddr_in s_addr;
 
     if (self->type != SERVER_PROTO_TCP)
     {
@@ -130,6 +139,12 @@ static int server_tcp_bind(server_t *self)
     (void)memset(&s_addr, 0, sizeof(s_addr));
     s_addr.sin_family = AF_INET;
     s_addr.sin_port = htons(self->port);
+
+    if (self->register_service) {
+        DNS_SD_REGISTER_SERVICE(esp32, CONFIG_NET_HOSTNAME,
+                    "_esp32", "_tcp", "local", DNS_SD_EMPTY_TXT,
+                    &s_addr.sin_port);
+    }
 
     self->sock = socket(s_addr.sin_family, SOCK_STREAM, 0);
     if (self->sock < 0) {
@@ -149,6 +164,7 @@ static int server_tcp_bind(server_t *self)
         LOG_ERR("Failed to listen on TCP socket: %d, %s", errno, strerror(errno));
         return -errno;
     }
+
 
     return 0;
 }
@@ -216,7 +232,7 @@ static server_iface_create_t server_iface_create[SERVER_PROTO_N] = {
 };
 
 /***************************** INTERFACE FUNCTIONS ****************************/
-server_t *server_new (server_proto_t type, int port)
+server_t *server_new (server_proto_t type, int port, bool register_service)
 {
     LOG_INF("Creating new server object");
 
@@ -224,6 +240,7 @@ server_t *server_new (server_proto_t type, int port)
     assert (self);
     self->type = type;
     self->port = port;
+    self->register_service = register_service;
     self->iface = server_iface_create[type]();
 
     return self;
