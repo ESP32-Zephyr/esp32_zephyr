@@ -6,9 +6,11 @@
 
 #include "wifi.h"
 #include "server.h"
+
 /************************************ DEFINES **********************************/
-#define SERVER_PORT 4242
 #define SERVER_TL_TYPE SERVER_PROTO_TCP
+#define SERVER_PORT 4242
+#define REGISTER_SERVICE true
 #define SERVER_STACK_SIZE 4000
 
 #if defined(CONFIG_NET_TC_THREAD_COOPERATIVE)
@@ -34,9 +36,9 @@ int main(void)
     wifi->status();
 
     /* Create server context */
-    server = server_new(SERVER_TL_TYPE, SERVER_PORT);
+    server = server_new(SERVER_TL_TYPE, SERVER_PORT, REGISTER_SERVICE);
 
-    /* Spawn UDP server */
+    /* Spawn server */
     server_tid = k_thread_create(&server_td, server_stack,
                  K_THREAD_STACK_SIZEOF(server_stack),
                  server_start, server, NULL, NULL, SERVER_THREAD_PRIO, 0,
