@@ -60,8 +60,7 @@ static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
     }
 }
 
-/***************************** INTERFACE FUNCTIONS ****************************/
-bool wifi_connect(const char *ssid, char *pass) {
+static bool wifi_connect(const char *ssid, char *pass) {
     int retries = 3;
     bool net_iface_up = false;
 
@@ -107,14 +106,14 @@ bool wifi_connect(const char *ssid, char *pass) {
     return true;
 }
 
-void wifi_disconnect(void) {
+static void wifi_disconnect(void) {
     if (net_mgmt(NET_REQUEST_WIFI_DISCONNECT, wifi.iface, NULL, 0))
     {
         LOG_ERR("WiFi Disconnection Request Failed");
     }
 }
 
-void wifi_status(void) {
+static void wifi_status(void) {
     struct wifi_iface_status status = {0};
 
     if (net_mgmt(NET_REQUEST_WIFI_IFACE_STATUS, wifi.iface, &status,
@@ -132,6 +131,7 @@ void wifi_status(void) {
     }
 }
 
+/***************************** INTERFACE FUNCTIONS ****************************/
 wifi_iface_t *wifi_get(void) {
     wifi_iface.connect = wifi_connect;
     wifi_iface.disconnect = wifi_disconnect;
