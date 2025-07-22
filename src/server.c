@@ -1,11 +1,12 @@
 /******************************** INCLUDE FILES *******************************/
-#include <zephyr/net/socket.h>
-#include <zephyr/kernel.h>
 #include <errno.h>
 #include <stdio.h>
 #include <assert.h>
-#include <zephyr/logging/log.h>
+
+#include <zephyr/kernel.h>
+#include <zephyr/net/socket.h>
 #include <zephyr/net/dns_sd.h>
+#include <zephyr/logging/log.h>
 
 #include "server.h"
 
@@ -253,6 +254,7 @@ void server_destroy (server_t **self_p)
         server_t *self = *self_p;
         //  Free class properties here
         //  Free object itself
+        close(self->sock);
         k_free(self->iface);
         k_free (self);
         *self_p = NULL;
