@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+enum command_id {
+    UNKNOWN = 0;
+    VERSION_GET = 1;
+    ADC_CHS_GET = 2;
+}
+
+enum ret_code {
+    OK = 0;
+    ERROR = 1;
+    INVALID_ARGUMENT = 2;
+    NOT_FOUND = 3;
+    PERMISSION_DENIED = 4;
+    UNAUTHENTICATED = 5;
+    ALREADY_EXISTS = 6;
+    UNAVAILABLE = 7;
+    INTERNAL = 8;
+    TIMEOUT = 9;
+}
+
+message req_hdr {
+    command_id id = 1;
+}
+
+message res_hdr {
+    command_id id = 1;
+    ret_code ret = 2;
+    string err_msg = 3;
+}
+
+message version_get_req {
+    req_hdr hdr = 1;
+}
+
+message version_get_res {
+    fixed32 version = 2;
+    string branch = 3;
+    string sha1 = 4;
+    string commit_date = 5;
+}
+
+message adc_chs_get_req {
+    req_hdr hdr = 1;
+}
+
+message adc_chs_get_res {
+    fixed32 adc_chs = 2;
+}
+
+message request {
+    req_hdr hdr = 1;
+    oneof pl {
+        version_get_req version_get = 2;
+        adc_chs_get_req adc_chs_get = 3;
+    }
+}
+
+message response {
+    res_hdr hdr = 1;
+    oneof pl {
+        version_get_res version_get = 2;
+        adc_chs_get_res adc_chs_get = 3;
+    }
+}
+
+

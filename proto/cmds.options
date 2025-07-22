@@ -1,0 +1,4 @@
+res_hdr.err_msg max_size: 256
+version_get_res.branch max_size: 256;
+version_get_res.sha1 max_size: 40;
+version_get_res.commit_date max_size: 30;
