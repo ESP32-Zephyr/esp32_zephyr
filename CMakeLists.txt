@@ -5,6 +5,10 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 set(app esp32_devkitc_wroom)
 project(${app})
 
+list(APPEND CMAKE_MODULE_PATH ${ZEPHYR_BASE}/modules/nanopb)
+include(nanopb)
+include(${CMAKE_SOURCE_DIR}/cmake/cmake-git-version-tracking.cmake)
+
 if(SSID)
     message(STATUS "Found SSID")
 else()
@@ -17,8 +21,7 @@ else()
     message(SEND_ERROR "PSK not found")
 endif()
 
-include(${CMAKE_SOURCE_DIR}/cmake/cmake-git-version-tracking.cmake)
-
+zephyr_nanopb_sources(app proto/cmds.proto)
 FILE(GLOB ${app}_sources src/*.c)
 
 target_sources(app PRIVATE ${${app}_sources})
