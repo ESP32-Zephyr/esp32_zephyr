@@ -1,0 +1,4 @@
+&wifi {
+	status = "okay";
+	compatible = "espressif,esp32-wifi";
+};
