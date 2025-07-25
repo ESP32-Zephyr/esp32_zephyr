@@ -47,7 +47,7 @@ static void wifi_disconnect_event_handler(struct net_mgmt_event_callback *cb) {
 }
 
 static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
-    uint32_t wifi_mgmt_event, struct net_if *iface) {
+    uint64_t wifi_mgmt_event, struct net_if *iface) {
     switch (wifi_mgmt_event) {
     case NET_EVENT_WIFI_CONNECT_RESULT:
         wifi_connect_event_handler(cb);
@@ -61,24 +61,9 @@ static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
 }
 
 static bool wifi_connect(const char *ssid, char *pass) {
-    int retries = 3;
-    bool net_iface_up = false;
-
     k_sem_init (&wifi.connected, 0, 1);
-    wifi.iface = net_if_get_default();
-    /* Check if the network interface is up */
-    while (retries) {
-        net_iface_up = net_if_is_up(wifi.iface);
-        if (net_iface_up)
-            break;
 
-        k_sleep(K_MSEC(100));
-        retries--;
-    }
-
-    if (!net_iface_up)
-        return false;
-
+    wifi.iface = net_if_get_wifi_sta();
     net_mgmt_init_event_callback(&wifi.event_cb, wifi_mgmt_event_handler,
         NET_EVENT_WIFI_CONNECT_RESULT | NET_EVENT_WIFI_DISCONNECT_RESULT);
     net_mgmt_add_event_callback(&wifi.event_cb);
