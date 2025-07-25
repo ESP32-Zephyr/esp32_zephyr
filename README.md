@@ -3,7 +3,7 @@
 ## Build
 
 ```console
-$ west build -b esp32_devkitc_wroom -- -DSSID="WIFI_SSID" -DPSK="WIFI_PASS"
+$ west build -b esp32_devkitc/esp32/procpu -- -DSSID="WIFI_SSID" -DPSK="WIFI_PASS"
 ```
 
 where `WIFI_SSID` is the SSID of the Wifi network that you wish to connect to
