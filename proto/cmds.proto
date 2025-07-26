@@ -1,4 +1,4 @@
-syntax = "proto3";
+syntax = "proto2";
 
 enum command_id {
     UNKNOWN = 0;
@@ -20,36 +20,34 @@ enum ret_code {
 }
 
 message req_hdr {
-    command_id id = 1;
+    required command_id id = 1;
 }
 
 message res_hdr {
-    command_id id = 1;
-    ret_code ret = 2;
-    string err_msg = 3;
+    required command_id id = 1;
+    optional ret_code ret = 2;
+    optional string err_msg = 3;
 }
 
 message version_get_req {
-    req_hdr hdr = 1;
 }
 
 message version_get_res {
-    fixed32 version = 2;
-    string branch = 3;
-    string sha1 = 4;
-    string commit_date = 5;
+    optional fixed32 version = 1;
+    optional string branch = 2;
+    optional string sha1 = 3;
+    optional string commit_date = 4;
 }
 
 message adc_chs_get_req {
-    req_hdr hdr = 1;
 }
 
 message adc_chs_get_res {
-    fixed32 adc_chs = 2;
+    optional fixed32 adc_chs = 1;
 }
 
 message request {
-    req_hdr hdr = 1;
+    required req_hdr hdr = 1;
     oneof pl {
         version_get_req version_get = 2;
         adc_chs_get_req adc_chs_get = 3;
@@ -57,7 +55,7 @@ message request {
 }
 
 message response {
-    res_hdr hdr = 1;
+    required res_hdr hdr = 1;
     oneof pl {
         version_get_res version_get = 2;
         adc_chs_get_res adc_chs_get = 3;
