@@ -7,6 +7,7 @@
 #include "version.h"
 #include "wifi.h"
 #include "server.h"
+#include "adc.h"
 
 /************************************ DEFINES **********************************/
 #define SERVER_TL_TYPE SERVER_PROTO_UDP
@@ -30,6 +31,7 @@ int main(void)
 {
     wifi_iface_t *wifi = NULL;
     server_t *server = NULL;
+    adc_t *adc = NULL;
 
     version_print();
 
@@ -37,6 +39,9 @@ int main(void)
     wifi = wifi_get();
     wifi->connect(SSID, PSK);
     wifi->status();
+
+    adc = adc_get();
+    adc->init();
 
     /* Create server context */
     server = server_new(SERVER_TL_TYPE, SERVER_PORT, REGISTER_SERVICE);
