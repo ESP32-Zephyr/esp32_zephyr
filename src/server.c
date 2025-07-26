@@ -9,7 +9,8 @@
 #include <zephyr/logging/log.h>
 
 #include "server.h"
-
+#include "cmd_interpreter.h"
+#include <pb_decode.h>
 /******************************** LOCAL DEFINES *******************************/
 LOG_MODULE_REGISTER(server, LOG_LEVEL_DBG);
 #define SERVER_IO_BUFFER_SIZE 1000
@@ -34,12 +35,44 @@ struct _server_t
 
     int sock;
     server_iface_t *iface;
+    cmd_hndlr_t *cmds;
 };
 
 /********************************* LOCAL DATA *********************************/
 
 
 /******************************* LOCAL FUNCTIONS ******************************/
+static int server_proces_cmd(server_t *self, char *io_buffer, int rx_len, int *tx_len)
+{
+    int ret = 0;
+    request req;
+    response res;
+    cmd_hndlr_t hndlr = NULL;
+
+    ret = cmd_interpreter_decode(io_buffer, rx_len, &req);
+    if (ret != 0) {
+        LOG_ERR("Failed to decode request!");
+        return -1;
+    }
+
+    hndlr = self->cmds[req.hdr.id];
+    if (hndlr == NULL)
+    {
+        LOG_ERR("Invalid command handler: %d", req.hdr.id);
+        return -1;
+    }
+
+    hndlr(&req, &res);
+
+    ret = cmd_interpreter_encode(io_buffer, SERVER_IO_BUFFER_SIZE, tx_len, &res);
+    if (ret != 0) {
+        LOG_ERR("Failed to encode response!");
+        return -1;
+    }
+
+    return 0;
+}
+
 static int server_udp_bind(server_t *self)
 {
     int ret = 0;
@@ -83,10 +116,11 @@ static int server_udp_bind(server_t *self)
 static int server_udp_process(server_t *self)
 {
     int ret = 0;
-    int received = 0;
+    int rx_len = 0;
+    int tx_len = 0;
     struct sockaddr client_addr;
     socklen_t client_addr_len;
-    char recv_buffer[SERVER_IO_BUFFER_SIZE];
+    char io_buffer[SERVER_IO_BUFFER_SIZE];
 
     if (self->type != SERVER_PROTO_UDP)
     {
@@ -98,16 +132,16 @@ static int server_udp_process(server_t *self)
     for(;;)
     {
         client_addr_len = sizeof(client_addr);
-        received = recvfrom(self->sock, recv_buffer,
+        rx_len = recvfrom(self->sock, io_buffer,
                     SERVER_IO_BUFFER_SIZE, 0, &client_addr, &client_addr_len);
-        if (received < 0) {
+        if (rx_len < 0) {
             /* Socket error */
             NET_ERR("UDP: Connection error: %d, %s", errno, strerror(errno));
             continue;
         }
-        LOG_DBG("Received: %d bytes", received);
+        server_proces_cmd(self, io_buffer, rx_len, &tx_len);
 
-        ret = sendto(self->sock, recv_buffer, received, 0,
+        ret = sendto(self->sock, io_buffer, tx_len, 0,
                  &client_addr, client_addr_len);
         if (ret < 0) {
             NET_ERR("UDP: Failed to send: %d, %s", errno, strerror(errno));
@@ -173,23 +207,26 @@ static int server_tcp_bind(server_t *self)
 static int server_tcp_conn_handler(server_t *self, int conn)
 {
     int ret = 0;
-    int received = 0;
-    char recv_buffer[SERVER_IO_BUFFER_SIZE];
+    int rx_len = 0;
+    size_t tx_len = 0;
+    char io_buffer[SERVER_IO_BUFFER_SIZE];
 
     for(;;)
     {
-        received = recv(conn, recv_buffer, SERVER_IO_BUFFER_SIZE, 0);
-        if (received == 0) {
+        rx_len = recv(conn, io_buffer, SERVER_IO_BUFFER_SIZE, 0);
+        if (rx_len == 0) {
             /* Connection closed */
             LOG_INF("TCP: Connection closed");
             break;
-        } else if (received < 0) {
+        } else if (rx_len < 0) {
             /* Socket error */
             LOG_ERR("TCP: Connection error %d", errno);
             ret = errno;
             break;
         }
-        send(conn, recv_buffer, received, 0);
+        server_proces_cmd(self, io_buffer, rx_len, &tx_len);
+
+        send(conn, io_buffer, tx_len, 0);
     }
 
     (void)close(conn);
@@ -243,6 +280,7 @@ server_t *server_new (server_proto_t type, int port, bool register_service)
     self->port = port;
     self->register_service = register_service;
     self->iface = server_iface_create[type]();
+    self->cmds = cmd_interpreter_get();
 
     return self;
 }
