@@ -4,6 +4,7 @@ enum command_id {
     UNKNOWN = 0;
     VERSION_GET = 1;
     ADC_CHS_GET = 2;
+    ADC_CH_READ = 3;
 }
 
 enum ret_code {
@@ -46,11 +47,20 @@ message adc_chs_get_res {
     optional fixed32 adc_chs = 1;
 }
 
+message adc_ch_read_req {
+    required fixed32 ch = 1;
+}
+
+message adc_ch_read_res {
+    optional fixed32 val = 1;
+}
+
 message request {
     required req_hdr hdr = 1;
     oneof pl {
         version_get_req version_get = 2;
         adc_chs_get_req adc_chs_get = 3;
+        adc_ch_read_req adc_ch_read = 4;
     }
 }
 
@@ -59,6 +69,7 @@ message response {
     oneof pl {
         version_get_res version_get = 2;
         adc_chs_get_res adc_chs_get = 3;
+        adc_ch_read_res adc_ch_read = 4;
     }
 }
 
