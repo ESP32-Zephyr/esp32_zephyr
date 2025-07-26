@@ -4,6 +4,8 @@
 import argparse
 import socket
 
+import cmds_pb2
+
 class Esp32TCPSock:
     """docstring for Esp32TCPSock"""
     def __init__(self, dest_addr: tuple):
@@ -15,15 +17,14 @@ class Esp32TCPSock:
     def __dell__(self):
         self.sock.close()
 
-    def send(self, msg: str):
-        self.sock.send(msg.encode())
+    def send(self, msg: bytes):
+        self.sock.send(msg)
 
     def recv(self) -> str:
         res = ""
 
         try:
             res = self.sock.recv(1024)
-            res = res.decode()
         except socket.timeout:
             print("---| Receive timeout")
 
@@ -40,15 +41,14 @@ class Esp32UDPSock:
     def __dell__(self):
         self.sock.close()
 
-    def send(self, msg: str):
-        self.sock.sendto(msg.encode(), self.dest_addr)
+    def send(self, msg: bytes):
+        self.sock.sendto(msg, self.dest_addr)
 
     def recv(self) -> str:
         res = ""
 
         try:
             res, _ = self.sock.recvfrom(1024)
-            res = res.decode()
         except socket.timeout:
             print("---| Receive timeout")
 
@@ -57,9 +57,10 @@ class Esp32UDPSock:
 # --- Main entry point --- #
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dest_addr", help="ESP32 IPv4 address & port. proto:ipv4:port", type=str, required=True)
+    parser.add_argument("--dest_addr", help="ESP32 IPv4 address & port. proto:ipv4:port",
+        type=str, required=True)
     parser.add_argument("--msg_cnt", help="Number of test messages to send",
-        type=int, default=3)
+        type=int, default=1)
     args = parser.parse_args()
 
     addr = args.dest_addr.split(":")
@@ -74,14 +75,47 @@ def main():
         print(f"Invalid protocol type: {proto}. Available protocols [ tcp | udp ]")
         return
 
-    for i in range(args.msg_cnt):
-        test_msg = f"Test message: {i}"
-        print(f"---> Sending: {test_msg}")
-        esp32_sock.send(test_msg)
-        test_msg_res = esp32_sock.recv()
-        if test_msg_res != "":
-            print(f"<--- Received: {test_msg_res}")
+    req = cmds_pb2.request()
+    res = cmds_pb2.response()
 
+    # Read Version
+    req.hdr.id = cmds_pb2.VERSION_GET
+    req_raw = req.SerializeToString()
+    print(f"---> Sending: \n{req}")
+    esp32_sock.send(req_raw)
+    res_raw = esp32_sock.recv()
+    try:
+        res.ParseFromString(res_raw)
+        print(f"<--- Received: \n{res}")
+    except Exception as err:
+        print(str(err))
+
+    # Get number of ADC channels
+    req.hdr.id = cmds_pb2.ADC_CHS_GET
+    req_raw = req.SerializeToString()
+    print(f"---> Sending: \n{req}")
+    esp32_sock.send(req_raw)
+    res_raw = esp32_sock.recv()
+    try:
+        res.ParseFromString(res_raw)
+        print(f"<--- Received: \n{res}")
+    except Exception as err:
+        print(str(err))
+
+    # Read ADC values
+    adc_chs = res.adc_chs_get.adc_chs
+    for ch in range(adc_chs):
+        req.hdr.id = cmds_pb2.ADC_CH_READ
+        req.adc_ch_read.ch = ch
+        req_raw = req.SerializeToString()
+        print(f"---> Sending: \n{req}")
+        esp32_sock.send(req_raw)
+        res_raw = esp32_sock.recv()
+        try:
+            res.ParseFromString(res_raw)
+            print(f"<--- Received: \n{res}")
+        except Exception as err:
+            print(str(err))
 
 if __name__ == "__main__":
     main()
