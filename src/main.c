@@ -9,10 +9,10 @@
 #include "server.h"
 
 /************************************ DEFINES **********************************/
-#define SERVER_TL_TYPE SERVER_PROTO_TCP
+#define SERVER_TL_TYPE SERVER_PROTO_UDP
 #define SERVER_PORT 4242
 #define REGISTER_SERVICE true
-#define SERVER_STACK_SIZE 4000
+#define SERVER_STACK_SIZE 2000
 
 #if defined(CONFIG_NET_TC_THREAD_COOPERATIVE)
 #define SERVER_THREAD_PRIO K_PRIO_COOP(CONFIG_NUM_COOP_PRIORITIES - 1)
@@ -48,7 +48,7 @@ int main(void)
                  K_NO_WAIT);
 
     for (;;)
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(1000));
 
     return 0;
 }
