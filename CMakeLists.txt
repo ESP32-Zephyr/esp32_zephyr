@@ -24,6 +24,13 @@ endif()
 zephyr_nanopb_sources(app proto/cmds.proto)
 FILE(GLOB ${app}_sources src/*.c)
 
+
+add_custom_target(py_proto
+        COMMAND protoc --python_out=${CMAKE_CURRENT_SOURCE_DIR}/test/ --proto_path=/home/iliya/Work/projects/esp32_zephyr/proto/ cmds.proto
+)
+
+add_dependencies(app py_proto)
+
 target_sources(app PRIVATE ${${app}_sources})
 target_link_libraries(app PRIVATE cmake_git_version_tracking)
 target_compile_definitions(app PRIVATE -D__APP_NAME__=\"${app}\" -DSSID=\"${SSID}\" -DPSK=\"${PSK}\")
