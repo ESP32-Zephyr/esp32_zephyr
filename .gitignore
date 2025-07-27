@@ -1,2 +1,6 @@
 /build*
-test/cmds_pb2.py
+test/py/cmds_pb2.py
+**__pycache__**
+test/go/go.mod
+test/go/go.sum
+test/go/pb/

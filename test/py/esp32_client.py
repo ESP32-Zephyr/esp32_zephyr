@@ -59,8 +59,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dest_addr", help="ESP32 IPv4 address & port. proto:ipv4:port",
         type=str, required=True)
-    parser.add_argument("--msg_cnt", help="Number of test messages to send",
-        type=int, default=1)
     args = parser.parse_args()
 
     addr = args.dest_addr.split(":")
