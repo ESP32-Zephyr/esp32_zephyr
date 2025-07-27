@@ -6,6 +6,32 @@ import socket
 
 import cmds_pb2
 
+class Esp32Ctl:
+    """docstring for Esp32Ctl"""
+    def __init__(self):
+        super(Esp32Ctl, self).__init__()
+        self.sock = None
+
+    def cmd_send(self,  req: object, req_id: int):
+        res = cmds_pb2.response()
+
+        req.hdr.id = req_id
+        req_raw = req.SerializeToString()
+        print(f"--->\n{req}")
+        self.sock.send(req_raw)
+        res_raw = self.sock.recv()
+        try:
+            res.ParseFromString(res_raw)
+            print(f"<---\n{res}")
+        except Exception as err:
+            print(f"Error parsing response: {err}")
+            return None
+
+        if res.hdr.ret != cmds_pb2.OK:
+            print(f"Command failed! (ret: {res.hdr.ret}) {res.hdr.err_msg}")
+
+        return res
+
 class Esp32TCPSock:
     """docstring for Esp32TCPSock"""
     def __init__(self, dest_addr: tuple):
@@ -65,55 +91,30 @@ def main():
     proto = addr[0]
     esp32_addr = (addr[1], int(addr[2]))
 
+    esp32_ctl = Esp32Ctl()
     if proto == "udp":
-        esp32_sock = Esp32UDPSock(esp32_addr)
+        esp32_ctl.sock = Esp32UDPSock(esp32_addr)
     elif proto == "tcp":
-        esp32_sock = Esp32TCPSock(esp32_addr)
+        esp32_ctl.sock = Esp32TCPSock(esp32_addr)
     else:
         print(f"Invalid protocol type: {proto}. Available protocols [ tcp | udp ]")
         return
 
     req = cmds_pb2.request()
-    res = cmds_pb2.response()
-
     # Read Version
-    req.hdr.id = cmds_pb2.VERSION_GET
-    req_raw = req.SerializeToString()
-    print(f"---> Sending: \n{req}")
-    esp32_sock.send(req_raw)
-    res_raw = esp32_sock.recv()
-    try:
-        res.ParseFromString(res_raw)
-        print(f"<--- Received: \n{res}")
-    except Exception as err:
-        print(str(err))
-
+    esp32_ctl.cmd_send(req, cmds_pb2.VERSION_GET)
     # Get number of ADC channels
-    req.hdr.id = cmds_pb2.ADC_CHS_GET
-    req_raw = req.SerializeToString()
-    print(f"---> Sending: \n{req}")
-    esp32_sock.send(req_raw)
-    res_raw = esp32_sock.recv()
-    try:
-        res.ParseFromString(res_raw)
-        print(f"<--- Received: \n{res}")
-    except Exception as err:
-        print(str(err))
-
-    # Read ADC values
+    res = esp32_ctl.cmd_send(req, cmds_pb2.ADC_CHS_GET)
+    # Read ADC channel
     adc_chs = res.adc_chs_get.adc_chs
     for ch in range(adc_chs):
-        req.hdr.id = cmds_pb2.ADC_CH_READ
         req.adc_ch_read.ch = ch
-        req_raw = req.SerializeToString()
-        print(f"---> Sending: \n{req}")
-        esp32_sock.send(req_raw)
-        res_raw = esp32_sock.recv()
-        try:
-            res.ParseFromString(res_raw)
-            print(f"<--- Received: \n{res}")
-        except Exception as err:
-            print(str(err))
+        esp32_ctl.cmd_send(req, cmds_pb2.ADC_CH_READ)
+
+    # Send invalid channel
+    req.adc_ch_read.ch = adc_chs + 1
+    esp32_ctl.cmd_send(req, cmds_pb2.ADC_CH_READ)
+
 
 if __name__ == "__main__":
     main()
