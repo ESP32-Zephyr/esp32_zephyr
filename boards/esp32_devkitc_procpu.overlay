@@ -1,7 +1,73 @@
+#include <zephyr/dt-bindings/pwm/pwm.h>
+
 / {
 	zephyr,user {
 		io-channels = <&adc0 0>, <&adc0 1>;
 	};
+
+    aliases {
+        pwm-0 = &ledc0;             	// LEDC PWM controller
+        pwm-mc0 = &pwm_led_blue;        // MC0 GPIO2
+        pwm-mc1 = &pwm_led_green;       // MC1 GPIO4
+        pwm-mc2 = &pwm_led_red;         // MC2 GPIO5
+    };
+
+    pwmleds {
+        compatible = "pwm-leds";
+        pwm_led_blue: pwm_led_gpio0_2 {
+            label = "PWM LED0";
+            pwms = <&ledc0 0 1000 PWM_POLARITY_NORMAL>; // Channel 0 → GPIO2
+        };
+        pwm_led_green: pwm_led_gpio0_4 {
+            label = "PWM LED1";
+            pwms = <&ledc0 1 1000 PWM_POLARITY_NORMAL>; // Channel 1 → GPIO4
+        };
+        pwm_led_red: pwm_led_gpio0_5 {
+            label = "PWM LED2";
+            pwms = <&ledc0 2 1000 PWM_POLARITY_NORMAL>; // Channel 2 → GPIO5
+        };
+    };
+};
+
+&pinctrl {
+    ledc0_default: ledc0_default {
+        group1 {
+            pinmux = <LEDC_CH0_GPIO2>; // Channel 0 → GPIO2
+            output-enable;
+        };
+        group2 {
+            pinmux = <LEDC_CH1_GPIO4>; // Channel 1 → GPIO4
+            output-enable;
+        };
+        group3 {
+            pinmux = <LEDC_CH2_GPIO5>; // Channel 2 → GPIO5
+            output-enable;
+        };
+    };
+};
+
+&ledc0 {
+    pinctrl-0 = <&ledc0_default>;
+    pinctrl-names = "default";
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    channel0@0 {
+        reg = <0x0>;
+        timer = <0>;
+        // Channel 0 mapped to GPIO2
+    };
+    channel1@1 {
+        reg = <0x1>;
+        timer = <0>;
+        // Channel 1 mapped to GPIO4
+    };
+    channel2@2 {
+        reg = <0x2>;
+        timer = <0>;
+        // Channel 2 mapped to GPIO5
+    };
 };
 
 &wifi {
