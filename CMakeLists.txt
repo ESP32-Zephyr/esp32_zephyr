@@ -26,12 +26,12 @@ FILE(GLOB ${app}_sources src/*.c)
 
 
 add_custom_target(py_proto
-        COMMAND protoc --python_out=${CMAKE_CURRENT_SOURCE_DIR}/test/py/ --proto_path=/home/iliya/Work/projects/esp32_zephyr/proto/ cmds.proto
+        COMMAND protoc --python_out=${CMAKE_CURRENT_SOURCE_DIR}/test/py/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/ cmds.proto
 )
 add_dependencies(app py_proto)
 
 add_custom_target(go_proto
-        COMMAND protoc --go_out=${CMAKE_CURRENT_SOURCE_DIR}/test/go/ --proto_path=/home/iliya/Work/projects/esp32_zephyr/proto/ --go_opt=Mcmds.proto=pb/ cmds.proto
+        COMMAND protoc --go_out=${CMAKE_CURRENT_SOURCE_DIR}/test/go/ --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/ --go_opt=Mcmds.proto=pb/ cmds.proto
 )
 add_dependencies(app go_proto)
 
