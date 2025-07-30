@@ -11,7 +11,7 @@
 #include "pwm.h"
 
 /************************************ DEFINES **********************************/
-#define SERVER_TL_TYPE SERVER_PROTO_UDP
+#define SERVER_TL_TYPE SERVER_PROTO_TCP
 #define SERVER_PORT 4242
 #define REGISTER_SERVICE true
 #define SERVER_STACK_SIZE 2000
