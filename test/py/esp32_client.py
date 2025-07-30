@@ -115,6 +115,19 @@ def main():
     req.adc_ch_read.ch = adc_chs + 1
     esp32_ctl.cmd_send(req, cmds_pb2.ADC_CH_READ)
 
+    # Configure PWM
+    res = esp32_ctl.cmd_send(req, cmds_pb2.PWM_PERIOD_INTERVAL_GET)
+    period = res.pwm_periods_get.period_max
+    res = esp32_ctl.cmd_send(req, cmds_pb2.PWM_CHS_GET)
+    pwm_chs = res.pwm_chs_get.pwm_chs
+    for ch in range(pwm_chs):
+        req.pwm_ch_set.ch = ch
+        req.pwm_ch_set.period = period
+        req.pwm_ch_set.pulse = 0#period // 2 # 50% Duty Cycle
+        esp32_ctl.cmd_send(req, cmds_pb2.PWM_CH_SET)
+        req.pwm_ch_get.ch = ch
+        esp32_ctl.cmd_send(req, cmds_pb2.PWM_CH_GET)
+
 
 if __name__ == "__main__":
     main()
