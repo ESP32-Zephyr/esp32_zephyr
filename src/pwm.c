@@ -9,8 +9,8 @@
 LOG_MODULE_REGISTER(pwm, LOG_LEVEL_DBG);
 
 #define NUM_PWM_CHANNELS 3
-#define MIN_PERIOD PWM_SEC(1U) / 128U
-#define MAX_PERIOD PWM_SEC(1U)
+#define MIN_PERIOD 1
+#define MAX_PERIOD 1000000000
 
 /********************************* TYPEDEFS ***********************************/
 
@@ -22,8 +22,6 @@ static const struct pwm_dt_spec pwm_channels[NUM_PWM_CHANNELS] = {
     PWM_DT_SPEC_GET(DT_ALIAS(pwm_mc2)),
 };
 
-// Store max period calibrated for each channel
-static uint32_t max_periods[NUM_PWM_CHANNELS];
 // Store current period and pulse width for each channel
 static uint32_t current_periods[NUM_PWM_CHANNELS];
 static uint32_t current_pulses[NUM_PWM_CHANNELS];
@@ -49,30 +47,14 @@ static int pwm_init(void)
                    pwm_channels[i].dev->name);
             return -ENODEV;
         }
-
-        // Calibrate max_period
-        uint32_t max_period = MAX_PERIOD;
-        while (pwm_set_dt(&pwm_channels[i], max_period, max_period / 2U) != 0) {
-            max_period /= 2U;
-            if (max_period < (4U * MIN_PERIOD)) {
-                LOG_ERR("PWM device %s does not support a period at least %lu\n",
-                       pwm_channels[i].dev->name, 4U * MIN_PERIOD);
-                return -ENOTSUP;
-            }
-        }
-        max_periods[i] = max_period;
-
-        // Initialize current period and pulse width
-        current_periods[i] = max_period;
-        current_pulses[i] = max_period / 2U;
-
-        LOG_INF("Channel %d (%s) calibrated max_period=%u ns\n",
-               pwm_channels[i].channel, pwm_channels[i].dev->name,
-               max_period);
     }
     pwm.init_done = true;
 
     return 0;
+}
+
+static int pwm_channels_n_get(void) {
+    return NUM_PWM_CHANNELS;
 }
 
 /**
@@ -89,6 +71,10 @@ static int duty_cycle_set(int channel_idx, uint32_t period, uint32_t pulse)
     }
 
     if (channel_idx < 0 || channel_idx >= NUM_PWM_CHANNELS) {
+        return -EINVAL;
+    }
+
+    if (period > MAX_PERIOD || period < MIN_PERIOD) {
         return -EINVAL;
     }
 
@@ -128,11 +114,19 @@ static int duty_cycle_get(int channel_idx, uint32_t *period, uint32_t *pulse)
     return 0;
 }
 
+static void periods_interval_get(uint32_t *period_min, uint32_t *period_max)
+{
+    *period_max = MAX_PERIOD;
+    *period_min = MIN_PERIOD;
+}
+
 /***************************** INTERFACE FUNCTIONS ****************************/
 pwm_t *pwm_get(void) {
     pwm.init = pwm_init;
+    pwm.channels_n_get = pwm_channels_n_get;
     pwm.duty_cycle_set = duty_cycle_set;
     pwm.duty_cycle_get = duty_cycle_get;
+    pwm.periods_interval_get = periods_interval_get;
 
     return &pwm;
 }

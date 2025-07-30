@@ -9,6 +9,7 @@
 typedef int (*IntVoid_t)(void);
 typedef int (*IntInt2xUint32_t)(int, uint32_t, uint32_t);
 typedef int (*IntInt2xUint32Ptr_t)(int, uint32_t *, uint32_t *);
+typedef void (*Void2xUint32Ptr_t)(uint32_t *, uint32_t *);
 
 /**
  * @brief Structure representing PWM interface and state.
@@ -17,31 +18,12 @@ typedef int (*IntInt2xUint32Ptr_t)(int, uint32_t *, uint32_t *);
  * as well as an initialization completion flag.
  */
 typedef struct _pwm_t {
-    /**
-     * @brief Pointer to the initialization function.
-     *
-     * Should be called before using other functions.
-     */
-    IntVoid_t init;
-
-    /**
-     * @brief Flag indicating if initialization is complete.
-     */
-    bool init_done;
-
-    /**
-     * @brief Function to set PWM duty cycle.
-     *
-     * @see IntInt2xUint32_t
-     */
-    IntInt2xUint32_t duty_cycle_set;
-
-    /**
-     * @brief Function to get PWM duty cycle.
-     *
-     * @see IntInt2xUint32Ptr_t
-     */
-    IntInt2xUint32Ptr_t duty_cycle_get;
+    IntVoid_t init; /**< Pointer to the initialization function. */
+    IntVoid_t channels_n_get; /**< Function pointer returning the number of ADC channels */
+    bool init_done; /**< Flag indicating if initialization is complete.*/
+    IntInt2xUint32_t duty_cycle_set; /**< Function to set PWM duty cycle. */
+    IntInt2xUint32Ptr_t duty_cycle_get; /**< Function to get PWM duty cycle. */
+    Void2xUint32Ptr_t periods_interval_get; /**< Retrieve max/min period intervals in ns */
 } pwm_t;
 
 
