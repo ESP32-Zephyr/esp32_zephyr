@@ -5,6 +5,10 @@ enum command_id {
     VERSION_GET = 1;
     ADC_CHS_GET = 2;
     ADC_CH_READ = 3;
+    PWM_CHS_GET = 4;
+    PWM_CH_SET = 5;
+    PWM_CH_GET = 6;
+    PWM_PERIOD_INTERVAL_GET = 7;
 }
 
 enum ret_code {
@@ -31,6 +35,7 @@ message res_hdr {
 }
 
 message version_get_req {
+    reserved 1;
 }
 
 message version_get_res {
@@ -41,6 +46,7 @@ message version_get_res {
 }
 
 message adc_chs_get_req {
+    reserved 1;
 }
 
 message adc_chs_get_res {
@@ -55,12 +61,52 @@ message adc_ch_read_res {
     optional fixed32 val = 1;
 }
 
+message pwm_chs_get_req {
+    reserved 1;
+}
+
+message pwm_chs_get_res {
+    optional fixed32 pwm_chs = 1;
+}
+
+message pwm_ch_set_req {
+    required fixed32 ch = 1;
+    required uint32 period = 2;
+    required uint32 pulse = 3;
+}
+
+message pwm_ch_set_res {
+    reserved 1;
+}
+
+message pwm_ch_get_req {
+    required fixed32 ch = 1;
+}
+
+message pwm_ch_get_res {
+    required uint32 period = 1;
+    required uint32 pulse = 2;
+}
+
+message pwm_periods_get_req {
+    reserved 1;
+}
+
+message pwm_periods_get_res {
+    required uint32 period_min = 1;
+    required uint32 period_max = 2;
+}
+
 message request {
     required req_hdr hdr = 1;
     oneof pl {
         version_get_req version_get = 2;
         adc_chs_get_req adc_chs_get = 3;
         adc_ch_read_req adc_ch_read = 4;
+        pwm_chs_get_req pwm_chs_get = 5;
+        pwm_ch_set_req pwm_ch_set = 6;
+        pwm_ch_get_req pwm_ch_get = 7;
+        pwm_periods_get_req pwm_periods_get = 8;
     }
 }
 
@@ -70,7 +116,9 @@ message response {
         version_get_res version_get = 2;
         adc_chs_get_res adc_chs_get = 3;
         adc_ch_read_res adc_ch_read = 4;
+        pwm_chs_get_res pwm_chs_get = 5;
+        pwm_ch_set_res pwm_ch_set = 6;
+        pwm_ch_get_res pwm_ch_get = 7;
+        pwm_periods_get_res pwm_periods_get = 8;
     }
 }
-
-
