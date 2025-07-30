@@ -6,6 +6,7 @@
 
 #include "cmd_interpreter.h"
 #include "adc.h"
+#include "pwm.h"
 
 #include "version.h"
 /******************************** LOCAL DEFINES *******************************/
@@ -84,6 +85,96 @@ static int request_adc_ch_read_handler(const request *req, response *res)
     return 0;
 }
 
+static int request_pwm_chs_get_handler(const request *req, response *res)
+{
+    LOG_DBG("%s", __func__);
+    (void)req;
+
+    pwm_t *pwm = pwm_get();
+    res->pl.pwm_chs_get.pwm_chs = pwm->channels_n_get();
+    res->which_pl = response_pwm_chs_get_tag;
+    response_set_hdr(res, command_id_PWM_CHS_GET, ret_code_OK, NULL);
+
+    return 0;
+}
+
+static int request_pwm_ch_set_handler(const request *req, response *res)
+{
+    LOG_DBG("%s", __func__);
+    int ret = 0;
+    int32_t ch = 0;
+    pwm_t *pwm = pwm_get();
+
+    if (ch < 0 || ch >= pwm->channels_n_get()) {
+        response_set_hdr(res, command_id_PWM_CH_SET, ret_code_INVALID_ARGUMENT,
+            "Invalid channel!");
+        return -1;
+    }
+
+    res->which_pl = response_pwm_ch_set_tag;
+    ret = pwm->duty_cycle_set(ch, req->pl.pwm_ch_set.period, req->pl.pwm_ch_set.pulse);
+    if (0 != ret)
+    {
+        response_set_hdr(res, command_id_PWM_CH_SET, ret_code_ERROR, "Failed to configure PWM chanel!");
+        return -1;
+    }
+    else
+    {
+        response_set_hdr(res, command_id_PWM_CH_SET, ret_code_OK, NULL);
+    }
+
+    return 0;
+}
+
+static int request_pwm_ch_get_handler(const request *req, response *res)
+{
+    LOG_DBG("%s", __func__);
+    int ret = 0;
+    int32_t ch = 0;
+    uint32_t period = 0;
+    uint32_t pulse = 0;
+    pwm_t *pwm = pwm_get();
+
+    if (ch < 0 || ch >= pwm->channels_n_get()) {
+        response_set_hdr(res, command_id_PWM_CH_GET, ret_code_INVALID_ARGUMENT,
+            "Invalid channel!");
+        return -1;
+    }
+
+    res->which_pl = response_pwm_ch_get_tag;
+    ret = pwm->duty_cycle_get(ch, &period, &pulse);
+    if (0 != ret)
+    {
+        response_set_hdr(res, command_id_PWM_CH_GET, ret_code_ERROR, "Failed to get PWM chanel configuration!");
+        return -1;
+    }
+    else
+    {
+        res->pl.pwm_ch_get.period = period;
+        res->pl.pwm_ch_get.pulse = pulse;
+        response_set_hdr(res, command_id_PWM_CH_GET, ret_code_OK, NULL);
+    }
+
+    return 0;
+}
+
+static int request_pwm_periods_get_handler(const request *req, response *res)
+{
+    LOG_DBG("%s", __func__);
+    (void)req;
+    pwm_t *pwm = pwm_get();
+    uint32_t period_max;
+    uint32_t period_min;
+
+    res->which_pl = response_pwm_periods_get_tag;
+    pwm->periods_interval_get(&period_min, &period_max);
+    res->pl.pwm_periods_get.period_min = period_min;
+    res->pl.pwm_periods_get.period_max = period_max;
+    response_set_hdr(res, command_id_PWM_PERIOD_INTERVAL_GET, ret_code_OK, NULL);
+
+    return 0;
+}
+
 /***************************** INTERFACE FUNCTIONS ****************************/
 int cmd_interpreter_decode(char *buffer, int buffer_len, request *req)
 {
@@ -123,6 +214,10 @@ cmd_hndlr_t *cmd_interpreter_get(void)
     cmd_handlers[command_id_VERSION_GET] = request_version_get_handler;
     cmd_handlers[command_id_ADC_CHS_GET] = request_adc_chs_get_handler;
     cmd_handlers[command_id_ADC_CH_READ] = request_adc_ch_read_handler;
+    cmd_handlers[command_id_PWM_CHS_GET] = request_pwm_chs_get_handler;
+    cmd_handlers[command_id_PWM_CH_SET] = request_pwm_ch_set_handler;
+    cmd_handlers[command_id_PWM_CH_GET] = request_pwm_ch_get_handler;
+    cmd_handlers[command_id_PWM_PERIOD_INTERVAL_GET] = request_pwm_periods_get_handler;
 
     return cmd_handlers;
 }
