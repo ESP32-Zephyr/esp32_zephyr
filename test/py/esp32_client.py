@@ -123,7 +123,7 @@ def main():
     for ch in range(pwm_chs):
         req.pwm_ch_set.ch = ch
         req.pwm_ch_set.period = period
-        req.pwm_ch_set.pulse = 0#period // 2 # 50% Duty Cycle
+        req.pwm_ch_set.pulse = period // 2 # 50% Duty Cycle
         esp32_ctl.cmd_send(req, cmds_pb2.PWM_CH_SET)
         req.pwm_ch_get.ch = ch
         esp32_ctl.cmd_send(req, cmds_pb2.PWM_CH_GET)
