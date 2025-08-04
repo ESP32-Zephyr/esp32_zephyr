@@ -21,6 +21,11 @@ else()
     message(SEND_ERROR "PSK not found")
 endif()
 
+option(BUILD_DOCS "Build documentation" OFF)
+if(BUILD_DOCS)
+    add_subdirectory(doc)
+endif()
+
 zephyr_nanopb_sources(app proto/cmds.proto)
 FILE(GLOB ${app}_sources src/*.c)
 
