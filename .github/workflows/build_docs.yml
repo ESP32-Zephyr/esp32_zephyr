@@ -1,0 +1,40 @@
+name: Sphinx Docs Build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Setup packages on Linux
+        if: ${{ runner.os == 'Linux' }}
+        working-directory: ./doc
+        run: |
+          sudo apt install libclang-dev
+          pip3 install -r requirements.txt
+
+      - name: Build
+        run: |
+          cmake -B build-docs -S doc
+          cmake --build build-docs
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        if: ${{ github.event_name == 'push' }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build-docs/html
+          force_orphan: true
