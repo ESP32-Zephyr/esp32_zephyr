@@ -1,10 +1,12 @@
-/**
- * @file server.h
- * @brief Server abstraction interface.
+/****************************************************************************
+ * **File:** server.h
+ *
+ * **Description:** Server abstraction interface.
+ *
  *
  * Defines the server type, server protocol enumeration, and interface functions
  * for creating, destroying, and starting a server.
- */
+ ****************************************************************************/
 
 #ifndef SERVER_H
 #define SERVER_H
@@ -17,14 +19,12 @@
 /********************************* TYPEDEFS ***********************************/
 
 /**
- * @typedef server_t
- * @brief Opaque server instance type.
+ * Opaque server instance type.
  */
 typedef struct _server_t server_t;
 
 /**
- * @enum server_proto_t
- * @brief Enum for selecting the server protocol type.
+ * Enum for selecting the server protocol type.
  */
 typedef enum _server_proto_t
 {
@@ -36,7 +36,7 @@ typedef enum _server_proto_t
 /***************************** INTERFACE FUNCTIONS ****************************/
 
 /**
- * @brief Create a new server instance.
+ * Create a new server instance.
  *
  * Allocates and initializes a new server of the specified protocol type,
  * listening on the given port. Optionally registers the service if requested.
@@ -50,7 +50,7 @@ typedef enum _server_proto_t
 server_t *server_new(server_proto_t type, int port, bool register_service);
 
 /**
- * @brief Destroy a server instance.
+ * Destroy a server instance.
  *
  * Deallocates and cleans up the server instance pointed to by `self_p`.
  * After this call, the pointer will be set to NULL.
@@ -60,7 +60,7 @@ server_t *server_new(server_proto_t type, int port, bool register_service);
 void server_destroy(server_t **self_p);
 
 /**
- * @brief Start the server.
+ * Start the server.
  *
  * Starts the server. The parameters p1, p2, p3 are generic pointers whose
  * meaning depends on the implementation and server type.

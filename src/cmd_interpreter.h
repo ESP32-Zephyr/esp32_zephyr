@@ -1,6 +1,7 @@
-/**
- * @file cmds.h
- * @brief Command interpreter interface for handling protobuf commands.
+/****************************************************************************
+ * **File:** cmd_interpreter.h
+ *
+ * **Description:** Command interpreter interface for handling protobuf commands.
  *
  * Defines the command handler function type and interface functions to get the
  * command interpreter, decode requests from a buffer, and encode responses into a buffer.
@@ -17,8 +18,7 @@
 /********************************* TYPEDEFS ***********************************/
 
 /**
- * @typedef cmd_hndlr_t
- * @brief Command handler function pointer type.
+ * Command handler function pointer type.
  *
  * This function processes a command request and populates the command response.
  *
@@ -32,7 +32,7 @@ typedef int (*cmd_hndlr_t)(const request *req, response *res);
 /***************************** INTERFACE FUNCTIONS ****************************/
 
 /**
- * @brief Get a pointer to the command interpreter handler array.
+ * Get a pointer to the command interpreter handler array.
  *
  * Returns a pointer to an array of command handler function pointers,
  * which the interpreter uses to dispatch commands.
@@ -42,7 +42,7 @@ typedef int (*cmd_hndlr_t)(const request *req, response *res);
 cmd_hndlr_t *cmd_interpreter_get(void);
 
 /**
- * @brief Decode a command request from a buffer.
+ * Decode a command request from a buffer.
  *
  * Parses the serialized request data from the buffer into the protobuf
  * request struct.
@@ -56,7 +56,7 @@ cmd_hndlr_t *cmd_interpreter_get(void);
 int cmd_interpreter_decode(char *buffer, int buffer_len, request *req);
 
 /**
- * @brief Encode a command response into a buffer.
+ * Encode a command response into a buffer.
  *
  * Serializes the protobuf response struct into a buffer.
  *

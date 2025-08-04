@@ -1,9 +1,10 @@
-/**
- * @file adc.h
- * @brief ADC interface definitions and functions.
+/****************************************************************************
+ * **File:** adc.h
+ *
+ * **Description:** ADC interface definitions and functions.
  *
  * This header defines types and the interface for ADC (Analog to Digital Converter) module.
- */
+ ****************************************************************************/
 
 #ifndef ADC_H
 #define ADC_H
@@ -15,20 +16,17 @@
 /********************************* TYPEDEFS ***********************************/
 
 /**
- * @typedef IntVoid_t
- * @brief Function pointer type for functions with signature: int func(void).
+ * Function pointer type for functions with signature: int func(void).
  */
 typedef int (*IntVoid_t)(void);
 
 /**
- * @typedef IntIntInt32_t
- * @brief Function pointer type for functions with signature: int func(int, int32_t*).
+ * Function pointer type for functions with signature: int func(int, int32_t*).
  */
 typedef int (*IntIntInt32_t)(int, int32_t*);
 
 /**
- * @struct adc_t
- * @brief ADC module abstraction struct.
+ * ADC module abstraction struct.
  *
  * Provides function pointers to initialize the ADC, check initialization status,
  * get the number of channels and read ADC channel value.
@@ -43,7 +41,7 @@ typedef struct _adc_t {
 /***************************** INTERFACE FUNCTIONS ****************************/
 
 /**
- * @brief Get a pointer to the ADC interface instance.
+ * Get a pointer to the ADC interface instance.
  *
  * Provides access to the ADC abstraction functions and state.
  *

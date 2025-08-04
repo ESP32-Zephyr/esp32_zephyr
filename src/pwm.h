@@ -1,3 +1,11 @@
+/****************************************************************************
+ * **File:** pwm.h
+ *
+ * **Description:** PWM interface definitions and functions.
+ *
+ * This header defines types and the interface for PWM module.
+ ****************************************************************************/
+
 #ifndef PWM_H
 #define PWM_H
 
