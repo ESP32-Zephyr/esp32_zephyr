@@ -1,5 +1,4 @@
 syntax = "proto2";
-package cmds;
 
 enum command_id {
     UNKNOWN = 0;
