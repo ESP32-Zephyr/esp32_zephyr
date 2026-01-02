@@ -10,7 +10,8 @@ Typedefs
 --------
 
 .. autoctype:: adc.h::adc_t
-
+    :members:
+        
 Interface Functions
 -------------------
 

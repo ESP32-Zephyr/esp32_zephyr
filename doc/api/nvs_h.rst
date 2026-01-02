@@ -1,7 +1,7 @@
-PWM
+NVS
 ===
 
-.. autocmodule:: pwm.h
+.. autocmodule:: nvs.h
 
 .. contents::
     :depth: 3
@@ -9,10 +9,10 @@ PWM
 Typedefs
 --------
 
-.. autoctype:: pwm.h::pwm_t
+.. autoctype:: nvs.h::nvs_t
     :members:
 
 Interface Functions
 -------------------
 
-.. autocfunction:: pwm.h::pwm_get
+.. autocfunction:: nvs.h::nvs_get

@@ -20,7 +20,7 @@ typedef int (*IntInt2xUint32Ptr_t)(int, uint32_t *, uint32_t *);
 typedef void (*Void2xUint32Ptr_t)(uint32_t *, uint32_t *);
 
 /**
- * @brief Structure representing PWM interface and state.
+ * Structure representing PWM interface and state.
  *
  * Contains function pointers for initialization and duty cycle manipulation,
  * as well as an initialization completion flag.
@@ -36,6 +36,7 @@ typedef struct _pwm_t {
 
 
 /***************************** INTERFACE FUNCTIONS ****************************/
+
 /**
  * @brief Retrieve the PWM interface instance.
  *

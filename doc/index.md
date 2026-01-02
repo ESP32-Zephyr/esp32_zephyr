@@ -16,6 +16,7 @@ hide-toc: true
 api/server_h
 api/adc_h
 api/pwm_h
+api/nvs_h
 api/cmd_interpreter_h
 api/wifi_h
 ```

@@ -10,6 +10,7 @@ Typedefs
 --------
 
 .. autoctype:: wifi.h::wifi_iface_t
+    :members:
 
 Interface Functions
 -------------------
