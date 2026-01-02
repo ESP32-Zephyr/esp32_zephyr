@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/net/socket.h>
@@ -95,7 +96,7 @@ static int server_udp_bind(server_t *self)
                     &s_addr.sin_port);
     }
 
-    self->sock = socket(s_addr.sin_family, SOCK_DGRAM, IPPROTO_UDP);
+    self->sock = zsock_socket(s_addr.sin_family, SOCK_DGRAM, IPPROTO_UDP);
     if (self->sock < 0) {
         LOG_ERR("Failed to create UDP socket: %d, %s", errno, strerror(errno));
         ret = -errno;
@@ -103,7 +104,7 @@ static int server_udp_bind(server_t *self)
 
     if (0 == ret) {
         s_addr_len = sizeof(s_addr);
-        ret = bind(self->sock, (struct sockaddr *)&s_addr, s_addr_len);
+        ret = zsock_bind(self->sock, (struct sockaddr *)&s_addr, s_addr_len);
         if (ret < 0) {
             LOG_ERR("Failed to bind UDP socket: %d, %s", errno, strerror(errno));
             ret = -errno;
@@ -132,7 +133,7 @@ static int server_udp_process(server_t *self)
     for(;;)
     {
         client_addr_len = sizeof(client_addr);
-        rx_len = recvfrom(self->sock, io_buffer,
+        rx_len = zsock_recvfrom(self->sock, io_buffer,
                     SERVER_IO_BUFFER_SIZE, 0, &client_addr, &client_addr_len);
         if (rx_len < 0) {
             /* Socket error */
@@ -141,7 +142,7 @@ static int server_udp_process(server_t *self)
         }
         server_proces_cmd(self, io_buffer, rx_len, &tx_len);
 
-        ret = sendto(self->sock, io_buffer, tx_len, 0,
+        ret = zsock_sendto(self->sock, io_buffer, tx_len, 0,
                  &client_addr, client_addr_len);
         if (ret < 0) {
             NET_ERR("UDP: Failed to send: %d, %s", errno, strerror(errno));
@@ -181,20 +182,20 @@ static int server_tcp_bind(server_t *self)
                     &s_addr.sin_port);
     }
 
-    self->sock = socket(s_addr.sin_family, SOCK_STREAM, 0);
+    self->sock = zsock_socket(s_addr.sin_family, SOCK_STREAM, 0);
     if (self->sock < 0) {
         LOG_ERR("Failed to create TCP socket: %d, %s", errno, strerror(errno));
         return -errno;
     }
 
     s_addr_len = sizeof(s_addr);
-    ret = bind(self->sock, (struct sockaddr *)&s_addr, s_addr_len);
+    ret = zsock_bind(self->sock, (struct sockaddr *)&s_addr, s_addr_len);
     if (ret < 0) {
         LOG_ERR("Failed to bind TCP socket: %d, %s", errno, strerror(errno));
         return -errno;
     }
 
-    ret = listen(self->sock, SERVER_MAX_CLIENT_QUEUE);
+    ret = zsock_listen(self->sock, SERVER_MAX_CLIENT_QUEUE);
     if (ret < 0) {
         LOG_ERR("Failed to listen on TCP socket: %d, %s", errno, strerror(errno));
         return -errno;
@@ -213,7 +214,7 @@ static int server_tcp_conn_handler(server_t *self, int conn)
 
     for(;;)
     {
-        rx_len = recv(conn, io_buffer, SERVER_IO_BUFFER_SIZE, 0);
+        rx_len = zsock_recv(conn, io_buffer, SERVER_IO_BUFFER_SIZE, 0);
         if (rx_len == 0) {
             /* Connection closed */
             LOG_INF("TCP: Connection closed");
@@ -226,10 +227,10 @@ static int server_tcp_conn_handler(server_t *self, int conn)
         }
         server_proces_cmd(self, io_buffer, rx_len, &tx_len);
 
-        send(conn, io_buffer, tx_len, 0);
+        zsock_send(conn, io_buffer, tx_len, 0);
     }
 
-    (void)close(conn);
+    (void)zsock_close(conn);
     return ret;
 }
 
@@ -242,8 +243,8 @@ static int server_tcp_process(server_t *self)
     LOG_INF("Waiting for TCP connections on port %d...", self->port);
     client_addr_len = sizeof(client_addr);
     for (;;) {
-        conn = accept(self->sock, (struct sockaddr *)&client_addr,
-                &client_addr_len);
+        conn = zsock_accept(self->sock, (struct sockaddr *)&client_addr,
+            &client_addr_len);
         if (conn < 0) {
             LOG_ERR("TCP: Accept error: %d, %s", errno, strerror(errno));
             continue;
@@ -292,7 +293,7 @@ void server_destroy (server_t **self_p)
         server_t *self = *self_p;
         //  Free class properties here
         //  Free object itself
-        close(self->sock);
+        zsock_close(self->sock);
         k_free(self->iface);
         k_free (self);
         *self_p = NULL;
