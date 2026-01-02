@@ -64,6 +64,12 @@ static bool wifi_connect(const char *ssid, char *pass) {
     k_sem_init (&wifi.connected, 0, 1);
 
     wifi.iface = net_if_get_wifi_sta();
+    if (wifi.iface == NULL) {
+        LOG_ERR("Faoiled to get WiFi interface");
+        return false;
+    }
+    net_if_up(wifi.iface);
+
     net_mgmt_init_event_callback(&wifi.event_cb, wifi_mgmt_event_handler,
         NET_EVENT_WIFI_CONNECT_RESULT | NET_EVENT_WIFI_DISCONNECT_RESULT);
     net_mgmt_add_event_callback(&wifi.event_cb);
@@ -96,6 +102,8 @@ static void wifi_disconnect(void) {
     {
         LOG_ERR("WiFi Disconnection Request Failed");
     }
+
+    net_if_down(wifi.iface);
 }
 
 static void wifi_status(void) {
