@@ -3,14 +3,18 @@
  */
 #include <zephyr/kernel.h>
 #include <stddef.h>
+#include <zephyr/logging/log.h>
 
 #include "version.h"
+#include "nvs.h"
 #include "wifi.h"
 #include "server.h"
 #include "adc.h"
 #include "pwm.h"
 
 /************************************ DEFINES **********************************/
+LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+
 #define SERVER_TL_TYPE SERVER_PROTO_TCP
 #define SERVER_PORT 4242
 #define REGISTER_SERVICE true
@@ -30,6 +34,11 @@ static struct k_thread server_td;
 /******************************* MAIN ENTRY POINT *****************************/
 int main(void)
 {
+    bool success = false;
+    char ssid[64] = {0};
+    char pass[64] = {0};
+
+    nvs_t *nvs = NULL;
     wifi_iface_t *wifi = NULL;
     server_t *server = NULL;
     adc_t *adc = NULL;
@@ -37,10 +46,18 @@ int main(void)
 
     version_print();
 
-    /* Connect to Wifi */
-    wifi = wifi_get();
-    wifi->connect(SSID, PSK);
-    wifi->status();
+    nvs = nvs_get();
+    nvs->init();
+    success = nvs->read_credentials(ssid, sizeof(ssid), pass, sizeof(pass));
+    if (!success) {
+        LOG_WRN("No stored WiFi credentials found!");
+        LOG_WRN("Please set Wifi credentials using the 'nvs' shell command.");
+    } else {
+        /* Connect to Wifi */
+        wifi = wifi_get();
+        wifi->connect(ssid, pass);
+        wifi->status();
+    }
 
     adc = adc_get();
     adc->init();
