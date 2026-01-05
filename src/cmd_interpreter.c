@@ -40,9 +40,13 @@ static int request_version_get_handler(const request *req, response *res)
     (void)req;
 
     res->pl.version_get.version = APP_VERSION;
+    res->pl.version_get.has_version = true;
     strcpy(res->pl.version_get.branch, git_Branch());
+    res->pl.version_get.has_branch = true;
     strcpy(res->pl.version_get.sha1, git_CommitSHA1());
+    res->pl.version_get.has_sha1 = true;
     strcpy(res->pl.version_get.commit_date, git_CommitDate());
+    res->pl.version_get.has_commit_date = true;
     res->which_pl = response_version_get_tag;
     response_set_hdr(res, command_id_VERSION_GET, ret_code_OK, NULL);
 
@@ -56,6 +60,7 @@ static int request_adc_chs_get_handler(const request *req, response *res)
 
     adc_t *adc = adc_get();
     res->pl.adc_chs_get.adc_chs = adc->channels_n_get();
+    res->pl.adc_chs_get.has_adc_chs = true;
     res->which_pl = response_adc_chs_get_tag;
     response_set_hdr(res, command_id_ADC_CHS_GET, ret_code_OK, NULL);
 
@@ -79,6 +84,7 @@ static int request_adc_ch_read_handler(const request *req, response *res)
 
     adc->ch_read(ch, &val);
     res->pl.adc_ch_read.val = val;
+    res->pl.adc_ch_read.has_val = true;
     res->which_pl = response_adc_ch_read_tag;
     response_set_hdr(res, command_id_ADC_CH_READ, ret_code_OK, NULL);
 
@@ -92,6 +98,7 @@ static int request_pwm_chs_get_handler(const request *req, response *res)
 
     pwm_t *pwm = pwm_get();
     res->pl.pwm_chs_get.pwm_chs = pwm->channels_n_get();
+    res->pl.pwm_chs_get.has_pwm_chs = true;
     res->which_pl = response_pwm_chs_get_tag;
     response_set_hdr(res, command_id_PWM_CHS_GET, ret_code_OK, NULL);
 
