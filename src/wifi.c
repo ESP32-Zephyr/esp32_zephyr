@@ -12,9 +12,7 @@ LOG_MODULE_REGISTER(wifi, LOG_LEVEL_DBG);
 typedef struct _wifi_ctx_t {
     /* Private */
     struct net_if *iface;
-    struct net_mgmt_event_callback event_cb;
     struct wifi_connect_req_params params;
-    struct k_sem connected;
 } wifi_ctx_t;
 
 /********************************* LOCAL DATA *********************************/
