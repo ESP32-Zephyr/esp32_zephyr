@@ -39,7 +39,7 @@ typedef void (*wifi_disconnect_t)(void);
 /**
  * Function pointer type for reporting the WiFi status.
  */
-typedef void (*wifi_status_t)(void);
+typedef bool (*wifi_status_t)(void);
 
 /**
  * @struct wifi_iface_t

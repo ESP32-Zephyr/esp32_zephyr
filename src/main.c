@@ -54,9 +54,17 @@ int main(void)
         LOG_WRN("Please set Wifi credentials using the 'nvs' shell command.");
     } else {
         /* Connect to Wifi */
+        bool connected = false;
         wifi = wifi_get();
-        wifi->connect(ssid, pass);
-        wifi->status();
+        for (;;) {
+            wifi->connect(ssid, pass);            
+            connected = wifi->status();        
+            if (!connected) {
+                LOG_ERR("Failed to connect to WiFi network: %s", ssid);
+            } else {
+                break;
+            }
+        }       
     }
 
     adc = adc_get();

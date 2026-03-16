@@ -22,57 +22,13 @@ static wifi_ctx_t wifi;
 static wifi_iface_t wifi_iface;
 
 /******************************* LOCAL FUNCTIONS ******************************/
-
-/* WIFI Event handler */
-static void wifi_connect_event_handler(struct net_mgmt_event_callback *cb) {
-    const struct wifi_status *info = (const struct wifi_status *)cb->info;
-
-    if (info->status) {
-        LOG_ERR("Connection request failed (%d)", info->status);
-    } else {
-        LOG_INF("Connected");
-        k_sem_give(&wifi.connected);
-    }
-}
-
-static void wifi_disconnect_event_handler(struct net_mgmt_event_callback *cb) {
-    const struct wifi_status *info = (const struct wifi_status *)cb->info;
-
-    if (info->status) {
-        LOG_ERR("Disconnection request (%d)", info->status);
-    } else {
-        LOG_INF("Disconnected");
-        k_sem_take(&wifi.connected, K_NO_WAIT);
-    }
-}
-
-static void wifi_mgmt_event_handler(struct net_mgmt_event_callback *cb,
-    uint64_t wifi_mgmt_event, struct net_if *iface) {
-    switch (wifi_mgmt_event) {
-    case NET_EVENT_WIFI_CONNECT_RESULT:
-        wifi_connect_event_handler(cb);
-        break;
-    case NET_EVENT_WIFI_DISCONNECT_RESULT:
-        wifi_disconnect_event_handler(cb);
-        break;
-    default:
-        break;
-    }
-}
-
 static bool wifi_connect(const char *ssid, char *pass) {
-    k_sem_init (&wifi.connected, 0, 1);
-
     wifi.iface = net_if_get_wifi_sta();
     if (wifi.iface == NULL) {
-        LOG_ERR("Faoiled to get WiFi interface");
+        LOG_ERR("Failed to get WiFi interface");
         return false;
     }
     net_if_up(wifi.iface);
-
-    net_mgmt_init_event_callback(&wifi.event_cb, wifi_mgmt_event_handler,
-        NET_EVENT_WIFI_CONNECT_RESULT | NET_EVENT_WIFI_DISCONNECT_RESULT);
-    net_mgmt_add_event_callback(&wifi.event_cb);
 
     memset(&wifi.params, 0x00, sizeof(struct wifi_connect_req_params));
     /* Connect to WIFI */
@@ -92,7 +48,7 @@ static bool wifi_connect(const char *ssid, char *pass) {
         return false;
     }
     LOG_INF("Waiting for authorization...");
-    k_sem_take(&wifi.connected, K_FOREVER);
+    k_sleep(K_SECONDS(15));
 
     return true;
 }
@@ -106,22 +62,29 @@ static void wifi_disconnect(void) {
     net_if_down(wifi.iface);
 }
 
-static void wifi_status(void) {
+static bool wifi_status(void) {
     struct wifi_iface_status status = {0};
+    bool connected = false;
 
-    if (net_mgmt(NET_REQUEST_WIFI_IFACE_STATUS, wifi.iface, &status,
-        sizeof(struct wifi_iface_status))) {
-        LOG_ERR("WiFi Status Request Failed");
-    }
+    net_mgmt(NET_REQUEST_WIFI_IFACE_STATUS, wifi.iface, &status,
+        sizeof(struct wifi_iface_status));
 
-    if (status.state >= WIFI_STATE_ASSOCIATED) {
+    if (status.state == WIFI_STATE_COMPLETED) {
+        // Module is connected to WiFi
+        LOG_INF("Connected");
         LOG_INF("Wifi network state:");
         LOG_INF("\tSSID: %-32s", status.ssid);
         LOG_INF("\tBand: %s", wifi_band_txt(status.band));
         LOG_INF("\tChannel: %d", status.channel);
         LOG_INF("\tSecurity: %s", wifi_security_txt(status.security));
         LOG_INF("\tRSSI: %d", status.rssi);
+        connected = true;
+    } else {
+        // Not connected
+        LOG_INF("Not connected, state: %d", status.state);
     }
+
+    return connected;
 }
 
 /***************************** INTERFACE FUNCTIONS ****************************/
