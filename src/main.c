@@ -57,14 +57,14 @@ int main(void)
         bool connected = false;
         wifi = wifi_get();
         for (;;) {
-            wifi->connect(ssid, pass);            
-            connected = wifi->status();        
+            wifi->connect(ssid, pass);
+            connected = wifi->status();
             if (!connected) {
                 LOG_ERR("Failed to connect to WiFi network: %s", ssid);
             } else {
                 break;
             }
-        }       
+        }
     }
 
     adc = adc_get();
