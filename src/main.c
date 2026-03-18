@@ -60,7 +60,7 @@ int main(void)
             wifi->connect(ssid, pass);
             connected = wifi->status();
             if (!connected) {
-                LOG_ERR("Failed to connect to WiFi network: %s", ssid);
+                LOG_WRN("Failed to connect to WiFi network: %s", ssid);
             } else {
                 break;
             }
