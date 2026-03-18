@@ -26,7 +26,7 @@ static bool wifi_connect(const char *ssid, char *pass) {
         LOG_ERR("Failed to get WiFi interface");
         return false;
     }
-    net_if_up(wifi.iface);
+    // net_if_up(wifi.iface);
 
     memset(&wifi.params, 0x00, sizeof(struct wifi_connect_req_params));
     /* Connect to WIFI */
