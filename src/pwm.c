@@ -38,12 +38,12 @@ static pwm_t pwm = {NULL, false, NULL, NULL};
  */
 static int pwm_init(void)
 {
-    LOG_INF("Initializing PWM channels...\n");
+    LOG_INF("Initializing PWM channels...");
 
     for (int i = 0; i < NUM_PWM_CHANNELS; i++) {
         // Check device readiness
         if (!pwm_is_ready_dt(&pwm_channels[i])) {
-            LOG_ERR("PWM device %s is not ready\n",
+            LOG_ERR("PWM device %s is not ready",
                    pwm_channels[i].dev->name);
             return -ENODEV;
         }
@@ -87,7 +87,7 @@ static int duty_cycle_set(int channel_idx, uint32_t period, uint32_t pulse)
         current_periods[channel_idx] = period;
         current_pulses[channel_idx] = pulse;
     } else {
-        LOG_ERR("%d: failed to set PWM for channel %d\n", ret, channel_idx);
+        LOG_ERR("%d: failed to set PWM for channel %d", ret, channel_idx);
     }
 
     return ret;
