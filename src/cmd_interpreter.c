@@ -34,6 +34,7 @@ static void response_set_hdr(response *res, command_id cmd_id, ret_code ret, con
 
 }
 
+
 static int request_version_get_handler(const request *req, response *res)
 {
     LOG_DBG("%s", __func__);
@@ -182,6 +183,17 @@ static int request_pwm_periods_get_handler(const request *req, response *res)
     return 0;
 }
 
+static int request_ping_handler(const request *req, response *res)
+{
+    LOG_DBG("%s", __func__);
+    (void)req;
+ 
+    strcpy(res->pl.ping.pong, "PONG");
+    response_set_hdr(res, command_id_PING, ret_code_OK, NULL);
+
+    return 0;
+}
+
 /***************************** INTERFACE FUNCTIONS ****************************/
 int cmd_interpreter_decode(char *buffer, int buffer_len, request *req)
 {
@@ -225,6 +237,7 @@ cmd_hndlr_t *cmd_interpreter_get(void)
     cmd_handlers[command_id_PWM_CH_SET] = request_pwm_ch_set_handler;
     cmd_handlers[command_id_PWM_CH_GET] = request_pwm_ch_get_handler;
     cmd_handlers[command_id_PWM_PERIOD_INTERVAL_GET] = request_pwm_periods_get_handler;
+    cmd_handlers[command_id_PING] = request_ping_handler;
 
     return cmd_handlers;
 }

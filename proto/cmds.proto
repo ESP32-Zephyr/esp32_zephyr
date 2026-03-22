@@ -9,6 +9,7 @@ enum command_id {
     PWM_CH_SET = 5;
     PWM_CH_GET = 6;
     PWM_PERIOD_INTERVAL_GET = 7;
+    PING = 8;
 }
 
 enum ret_code {
@@ -97,6 +98,14 @@ message pwm_periods_get_res {
     required uint32 period_max = 2;
 }
 
+message ping_req {
+    reserved 1;
+}
+
+message ping_res {
+    required string pong = 1;
+}
+
 message request {
     required req_hdr hdr = 1;
     oneof pl {
@@ -107,6 +116,7 @@ message request {
         pwm_ch_set_req pwm_ch_set = 6;
         pwm_ch_get_req pwm_ch_get = 7;
         pwm_periods_get_req pwm_periods_get = 8;
+        ping_req ping = 9;
     }
 }
 
@@ -120,5 +130,6 @@ message response {
         pwm_ch_set_res pwm_ch_set = 6;
         pwm_ch_get_res pwm_ch_get = 7;
         pwm_periods_get_res pwm_periods_get = 8;
+        ping_res ping = 9;
     }
 }
