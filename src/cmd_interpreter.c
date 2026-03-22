@@ -187,8 +187,9 @@ static int request_ping_handler(const request *req, response *res)
 {
     LOG_DBG("%s", __func__);
     (void)req;
- 
-    strcpy(res->pl.ping.pong, "PONG");
+
+    res->which_pl = response_ping_tag;
+    strcpy(res->pl.ping.pong, "pong");
     response_set_hdr(res, command_id_PING, ret_code_OK, NULL);
 
     return 0;
