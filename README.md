@@ -85,9 +85,7 @@ $  avahi-resolve -4 -n esp32.local
 esp32.local xxx.xxx.xxx.xxx
 ```
 
-### Send/Receive test message
+## APIs
 
-```console
-$ cd test/py
-$ python3 esp32_client.py --dest_addr tcp:xxx.xxx.xxx.xxx:4242
-```
+To connect and send commands over tcp to the ESP32 board use either the [python](https://github.com/ESP32-Zephyr/esp32_zephyr_pyapi) or [go](https://github.com/ESP32-Zephyr/esp32_zephyr_goapi) APIs.
+
